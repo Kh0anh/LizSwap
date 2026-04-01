@@ -34,6 +34,8 @@ Tài liệu này liệt kê toàn bộ công nghệ, thư viện, và công cụ
 | **State** | React Context / wagmi hooks | — | |
 | **Styling** | Tailwind CSS + shadcn/ui | Radix UI primitives, class-variance-authority |
 | **UI Components** | shadcn/ui | `components.json` config, copy-paste components |
+| **Testing** | Vitest + React Testing Library | Unit/Component/Hook tests |
+| **E2E Testing** | Playwright | Optional cho v1 |
 
 ---
 
@@ -65,6 +67,7 @@ Tài liệu này liệt kê toàn bộ công nghệ, thư viện, và công cụ
 | **Auth** | jsonwebtoken | — | JWT sign/verify |
 | **Signature Verify** | viem `verifyMessage` | — | EIP-191 wallet signature |
 | **Process Manager** | PM2 | — | `ecosystem.config.js` |
+| **Testing** | Vitest + Supertest | — | Unit & Integration tests |
 
 ---
 
@@ -79,6 +82,7 @@ Tài liệu này liệt kê toàn bộ công nghệ, thư viện, và công cụ
 | **Cache Client** | ioredis | SET/PUB candle cache |
 | **HTTP Fallback** | axios | Fetch external OHLCV nếu cần |
 | **Process Manager** | PM2 | Daemon, không expose port |
+| **Testing** | Vitest | Mocks event, verify output |
 
 ---
 
