@@ -74,6 +74,7 @@ erDiagram
         NUMERIC fee_24h_usd
         NUMERIC apr
         INT tx_count_24h
+        NUMERIC total_supply_lp
         BIGINT created_at
         TIMESTAMP last_updated
     }
