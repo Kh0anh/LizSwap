@@ -56,6 +56,8 @@ Tài liệu này liệt kê toàn bộ công nghệ, thư viện, và công cụ
 | **Runtime** | Node.js | v20 LTS | |
 | **Ngôn ngữ** | TypeScript | 5+ | |
 | **Framework** | Express.js | — | REST API |
+| **Validation** | Zod | — | Request schema validation |
+| **Security** | Helmet.js | — | HTTP security headers |
 | **WebSocket** | Socket.IO | v4 | Realtime price & candle push (room/namespace per token pair, auto-reconnect) |
 | **Blockchain Client** | viem (PublicClient) | v2 | Đọc on-chain: reserves, getPair |
 | **DB Client** | pg (node-postgres) | — | PostgreSQL |
