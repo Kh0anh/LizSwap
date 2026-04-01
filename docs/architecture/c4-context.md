@@ -19,8 +19,7 @@ và theo dõi biểu đồ nến realtime cho các cặp giao dịch có pool tr
 | Staff | Người dùng nội bộ | Theo dõi hoạt động, hỗ trợ người dùng (không có quyền quản lý contract/cài đặt) |
 | MetaMask | Hệ thống ngoài | Ví Web3, ký xác thực giao dịch on-chain |
 | Binance Smart Chain | Hệ thống ngoài | Mạng Blockchain BSC – thực thi Smart Contract |
-| BSC Price Oracle | Hệ thống ngoài | Cung cấp giá token on-chain (PancakeSwap / hệ thống pool nội bộ) |
-| OHLCV Data Source | Hệ thống ngoài | Cung cấp dữ liệu nến lịch sử cho cặp có pool trực tiếp (tự index hoặc third-party) |
+| OHLCV Data Source | Hệ thống ngoài | Nguồn dữ liệu nến bên ngoài (Phase 2 / fallback, không bắt buộc cho v1). Khi chưa triển khai, BSC Indexer tự index toàn bộ dữ liệu OHLCV từ Swap events on-chain |
 
 ---
 
@@ -39,8 +38,7 @@ C4Context
 
   System_Ext(metamask, "MetaMask", "Web3 Wallet – ký và phát giao dịch BSC")
   System_Ext(bsc, "Binance Smart Chain", "Mạng Blockchain: thực thi Factory/Pair/Router contracts")
-  System_Ext(priceOracle, "BSC Price Oracle", "Giá token realtime từ pool on-chain")
-  System_Ext(ohlcvSource, "OHLCV Data Source", "Dữ liệu nến cho các cặp có direct pool")
+  System_Ext(ohlcvSource, "OHLCV Data Source", "Nguồn dữ liệu nến bên ngoài (Phase 2 / fallback, không bắt buộc cho v1)")
 
   Rel(trader, lizswap, "Swap token, xem chart", "HTTPS / Web3")
   Rel(lp, lizswap, "Add/Remove liquidity, Stake LP", "HTTPS / Web3")
@@ -50,8 +48,7 @@ C4Context
   Rel(lizswap, metamask, "Yêu cầu ký giao dịch", "EIP-1193 / wagmi+viem")
   Rel(metamask, bsc, "Phát giao dịch đã ký", "JSON-RPC")
   Rel(lizswap, bsc, "Đọc trạng thái on-chain", "JSON-RPC / viem")
-  Rel(lizswap, priceOracle, "Lấy giá token realtime", "JSON-RPC / HTTP")
-  Rel(lizswap, ohlcvSource, "Lấy dữ liệu OHLCV (cặp direct pool)", "HTTP / WebSocket")
+  Rel(lizswap, ohlcvSource, "Lấy dữ liệu OHLCV fallback (Phase 2)", "HTTP / WebSocket")
 
   UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```

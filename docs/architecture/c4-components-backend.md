@@ -42,7 +42,7 @@ C4Component
 
   Container_Boundary(backendApi, "Backend API (Node.js + TypeScript)") {
     Component(httpRouter, "HTTP Router", "Express Router", "Định tuyến tất cả REST endpoints")
-    Component(wsGateway, "WebSocket Gateway", "ws / Socket.IO", "Publish giá & OHLCV realtime cho client")
+    Component(wsGateway, "WebSocket Gateway", "Socket.IO v4", "Publish giá & OHLCV realtime cho client")
     Component(authMiddleware, "Auth Middleware", "JWT + Role Guard", "Xác thực token, kiểm tra role Manager/Staff")
     Component(priceService, "PriceService", "TypeScript", "Lấy giá token từ BSC RPC / pool reserves")
     Component(poolService, "PoolService", "TypeScript", "Thống kê pool: TVL, volume, APR")
@@ -219,6 +219,12 @@ C4Component
 | `volume` | NUMERIC(38,18) | Khối lượng token0 |
 | `tx_count` | INT | Số giao dịch trong nến |
 
+> [!IMPORTANT]
+> **Indexes cần thiết trên `ohlcv_candles`**:
+> - Composite index: `(pair_address, interval, open_time)` — tối ưu query OHLCV theo pair và khoảng thời gian
+> - Unique constraint: `(pair_address, interval, open_time)` — tránh duplicate khi Indexer restart hoặc replay events
+
+
 ### Bảng `system_config`
 | Cột | Kiểu | Mô tả |
 |---|---|---|
@@ -252,6 +258,8 @@ C4Component
 | `POST` | `/api/admin/users` | Manager | Thêm Staff mới |
 | `PUT` | `/api/admin/users/:id/role` | Manager | Cập nhật role |
 | `DELETE` | `/api/admin/users/:id` | Manager | Vô hiệu hoá tài khoản |
+| `GET` | `/api/admin/activity` | Manager/Staff | Lịch sử giao dịch Swap/Mint/Burn, filter theo pair và thời gian |
+| `GET` | `/api/admin/stats` | Manager/Staff | Thống kê tổng quan: 24h volume, TVL, số active wallets |
 | `GET` | `/api/admin/config` | Manager/Staff | Xem cấu hình hệ thống |
 | `PUT` | `/api/admin/config` | Manager | Cập nhật cấu hình |
 

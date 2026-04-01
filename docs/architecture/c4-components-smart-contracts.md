@@ -45,7 +45,7 @@ C4Component
     Component(erc20base, "LizSwapERC20", "Solidity ERC-20", "Base LP Token: transfer, approve, permit (EIP-2612)")
   }
 
-  Container_Boundary(periphery, "Periphery Contracts (Upgradeable Entry Points)") {
+  Container_Boundary(periphery, "Periphery Contracts (Replaceable Entry Points)") {
     Component(router, "LizSwapRouter", "Solidity", "Routing swap & liquidity an toàn, tính slippage, deadline")
     Component(staking, "LizSwapStaking", "Solidity", "Stake LP Token nhận reward token, tính reward theo block")
     Component(mockToken, "MockERC20", "Solidity ERC-20", "Token thử nghiệm cho môi trường dev/testnet")

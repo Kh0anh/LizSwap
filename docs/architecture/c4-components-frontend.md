@@ -101,7 +101,7 @@ C4Component
   Rel(authGuard, adminApiClient, "Verify JWT trên mỗi navigation", "Next.js Middleware")
 
   %% Admin pages
-  Rel(dashboardPage, adminApiClient, "GET /api/pools, /api/admin/*", "REST")
+  Rel(dashboardPage, adminApiClient, "GET /api/pools, /api/admin/stats", "REST")
   Rel(usersPage, adminApiClient, "GET/POST/DELETE /api/admin/users", "REST")
   Rel(configPage, adminApiClient, "GET/PUT /api/admin/config", "REST")
   Rel(poolsAdminPage, adminApiClient, "GET /api/pools/:pair/stats", "REST")

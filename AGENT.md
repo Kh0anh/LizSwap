@@ -77,6 +77,8 @@
 | POST | `/api/admin/users` | **Manager only** | Thêm Staff mới |
 | PUT | `/api/admin/users/:id/role` | **Manager only** | Cập nhật role |
 | DELETE | `/api/admin/users/:id` | **Manager only** | Vô hiệu hoá tài khoản |
+| GET | `/api/admin/activity` | Manager/Staff | Lịch sử giao dịch Swap/Mint/Burn, filter theo pair và thời gian |
+| GET | `/api/admin/stats` | Manager/Staff | Thống kê tổng quan: 24h volume, TVL, số active wallets |
 | GET | `/api/admin/config` | Manager/Staff | Xem cấu hình hệ thống |
 | PUT | `/api/admin/config` | **Manager only** | Cập nhật cấu hình |
 
