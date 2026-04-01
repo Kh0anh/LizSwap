@@ -35,7 +35,10 @@ LizSwap/
 ├── packages/
 │   ├── backend/                    # Backend API (Node.js)
 │   └── indexer/                    # BSC Indexer (Node.js)
-└── infra/                          # Docker Compose, Nginx config, PM2
+├── infra/                          # Nginx, PostgreSQL init, Certbot
+├── docker-compose.yml              # Docker Compose (toàn bộ services)
+├── .env.example                    # Template biến môi trường
+└── .dockerignore                   # Exclude files từ Docker build
 ```
 
 ---
@@ -272,12 +275,17 @@ packages/indexer/
 
 ```
 infra/
-├── docker-compose.yml              # postgres + redis services
 ├── nginx/
-│   ├── lizswap.xyz.conf            # DApp: proxy → :3001, /api → :3000
-│   └── admin.lizswap.xyz.conf      # Admin: proxy → :3002
-└── pm2/
-    └── ecosystem.config.js         # PM2: dapp-frontend, admin-dashboard, backend-api, bsc-indexer
+│   ├── nginx.conf                  # Main Nginx config (workers, gzip, security)
+│   └── conf.d/
+│       └── default.conf            # Virtual hosts: DApp, Admin, API proxy, WSS
+├── postgres/
+│   └── init/
+│       └── 01_init_schema.sql      # Auto-create schema + seed Manager + config
+└── certbot/
+    ├── init-letsencrypt.sh          # Script lấy SSL certificate lần đầu
+    ├── conf/                        # Let's Encrypt certificates (auto-generated)
+    └── www/                         # ACME challenge directory
 ```
 
 ---

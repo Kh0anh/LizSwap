@@ -110,8 +110,8 @@ Tài liệu này liệt kê toàn bộ công nghệ, thư viện, và công cụ
 | **OS** | Ubuntu 22.04 LTS | VPS |
 | **Reverse Proxy** | Nginx | TLS termination, virtual hosts |
 | **TLS** | Let's Encrypt + Certbot | `lizswap.xyz`, `admin.lizswap.xyz` |
-| **Containerisation** | Docker + Docker Compose | postgres, redis |
-| **Process Manager** | PM2 | backend-api, bsc-indexer, dapp-frontend, admin-dashboard |
+| **Containerisation** | Docker Compose | Toàn bộ services: postgres, redis, backend, indexer, dapp, admin, nginx, certbot |
+| **Process Manager** | Docker Compose (`restart: unless-stopped`) | Thay thế PM2, tự restart khi crash |
 | **BSC RPC** | QuickNode / Ankr | HTTPS + WebSocket (tránh public RPC) |
 | **CI/CD** | ❌ Không dùng | Deploy thủ công |
 
@@ -127,8 +127,8 @@ Tài liệu này liệt kê toàn bộ công nghệ, thư viện, và công cụ
 | `cast` | Interact với BSC từ CLI |
 | `anvil` | Local BSC fork |
 | `npm run dev` | Dev server (Next.js / Backend) |
-| `docker compose up` | Khởi động postgres + redis |
-| `pm2 logs` | Xem log services |
+| `docker compose up -d` | Khởi động toàn bộ hệ thống |
+| `docker compose logs -f` | Xem log services |
 | `certbot` | Cấp / renew SSL |
 
 ---
