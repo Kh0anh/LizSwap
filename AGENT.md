@@ -174,10 +174,11 @@ BSC WebSocket (Swap/Mint/Burn events)
 
 ---
 
-## 10. Tài liệu kiến trúc C4
+## 10. Hệ thống tài liệu dự án
 
-Tất cả tài liệu nằm tại `docs/architecture/`:
+Tài liệu được chia thành các thư mục chuyên biệt trong `docs/`:
 
+### 10.1 Kiến trúc & Hệ thống (`docs/architecture/`)
 | File | Nội dung |
 |---|---|
 | `c4-context.md` | Level 1 – System Context (actors & external systems) |
@@ -188,8 +189,21 @@ Tất cả tài liệu nằm tại `docs/architecture/`:
 | `c4-deployment.md` | Level 4 – Infrastructure Deployment |
 | `techstack.md` | Toàn bộ công nghệ, thư viện, công cụ |
 | `project-structure.md` | Cấu trúc thư mục monorepo đề xuất |
+| `error-handling.md` | Chiến lược xử lý lỗi (Error Handling) toàn hệ thống |
 
-> Khi tạo hoặc sửa tài liệu kiến trúc, luôn đảm bảo nhất quán với các file trên và cập nhật file liên quan nếu có thay đổi.
+### 10.2 API & Cơ sở dữ liệu (`docs/api/`, `docs/database/`)
+| File | Nội dung |
+|---|---|
+| `docs/api/rest-api.md` | Đặc tả chi tiết các REST API endpoints |
+| `docs/api/websocket.md` | Đặc tả Socket.IO events (bi-directional communication) |
+| `docs/database/schema.md` | Lược đồ CSDL PostgreSQL và Redis |
+
+### 10.3 Kiểm thử (`docs/testing/`)
+| File | Nội dung |
+|---|---|
+| `docs/testing/test-strategy.md` | Chiến lược kiểm thử (Smart Contracts, Backend, Frontend, Indexer) |
+
+> Khi tạo hoặc sửa mã nguồn, kiến trúc, luôn đảm bảo đối chiếu độ nhất quán với các file tài liệu trên và cập nhật tài liệu nếu có thay đổi logic thiết kế.
 
 ---
 
@@ -226,11 +240,16 @@ Tất cả tài liệu nằm tại `docs/architecture/`:
 | Kiến trúc tổng quan, actors, external systems | `docs/architecture/c4-context.md` |
 | Quan hệ giữa các services / containers | `docs/architecture/c4-containers.md` |
 | Smart Contract (Factory, Pair, Router, Staking) | `docs/architecture/c4-components-smart-contracts.md` |
-| Backend API, Indexer, database schema, endpoints | `docs/architecture/c4-components-backend.md` |
+| Backend API, Indexer logic, cấu trúc Backend | `docs/architecture/c4-components-backend.md` |
 | Frontend pages, components, chart logic, admin | `docs/architecture/c4-components-frontend.md` |
 | Hạ tầng, VPS, PM2, Nginx, deploy checklist | `docs/architecture/c4-deployment.md` |
 | Chọn thư viện, phiên bản, công cụ | `docs/architecture/techstack.md` |
 | Tạo file / thư mục mới, đặt tên, vị trí code | `docs/architecture/project-structure.md` |
+| Chiến lược xử lý lỗi, mã lỗi, middleware | `docs/architecture/error-handling.md` |
+| Chi tiết endpoint REST API | `docs/api/rest-api.md` |
+| Tích hợp, sửa đổi sự kiện Socket.IO | `docs/api/websocket.md` |
+| Sửa đổi database schema, truy vấn PostgreSQL/Redis | `docs/database/schema.md` |
+| Viết test cases, kiểm thử CI/CD, coverage | `docs/testing/test-strategy.md` |
 
 ---
 
