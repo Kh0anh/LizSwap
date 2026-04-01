@@ -37,20 +37,15 @@ C4Deployment
 
   Deployment_Node(vps, "VPS / Cloud VM", "Ubuntu 22.04 LTS, 4 vCPU / 8 GB RAM") {
 
-    Deployment_Node(pm2Node, "PM2 Process Manager", "Node.js Runtime") {
-      Container(dappApp, "dapp-frontend", "Next.js next start :3001", "Serve DApp Frontend SSR")
-      Container(adminApp, "admin-dashboard", "Next.js next start :3002", "Serve Admin Dashboard SSR")
-      Container(backendApi, "backend-api", "Node.js, TypeScript, Express :3000", "REST & WebSocket: giá, OHLCV, quản trị")
-      Container(bscIndexer, "bsc-indexer", "Node.js, TypeScript, viem", "Daemon index Swap/Mint/Burn → OHLCV")
-    }
-
-    Deployment_Node(dockerNode, "Docker Engine", "Docker 24+") {
-      ContainerDb(postgres, "PostgreSQL", "PostgreSQL 15 (Docker)", "Lưu ohlcv_candles, user_roles, system_config")
-      ContainerDb(redis, "Redis", "Redis 7 (Docker)", "Cache giá token, pool stats, JWT blacklist")
-    }
-
-    Deployment_Node(nginxNode, "Nginx", "Reverse Proxy / TLS") {
-      Container(nginxSvc, "Nginx", "sites-enabled", "lizswap.xyz → :3001, admin.lizswap.xyz → :3002, /api → :3000")
+    Deployment_Node(dockerCompose, "Docker Compose", "Docker Engine 24+") {
+      Container(dappApp, "lizswap-dapp", "Next.js next start :3001", "Serve DApp Frontend SSR")
+      Container(adminApp, "lizswap-admin", "Next.js next start :3002", "Serve Admin Dashboard SSR")
+      Container(backendApi, "lizswap-backend", "Node.js, TypeScript, Express :3000", "REST & WebSocket: giá, OHLCV, quản trị")
+      Container(bscIndexer, "lizswap-indexer", "Node.js, TypeScript, viem", "Daemon index Swap/Mint/Burn → OHLCV")
+      ContainerDb(postgres, "lizswap-postgres", "PostgreSQL 15 (Docker)", "Lưu ohlcv_candles, user_roles, system_config")
+      ContainerDb(redis, "lizswap-redis", "Redis 7 (Docker)", "Cache giá token, pool stats, JWT blacklist")
+      Container(nginxSvc, "lizswap-nginx", "nginx:alpine", "lizswap.xyz → :3001, admin → :3002, /api → :3000")
+      Container(certbotSvc, "lizswap-certbot", "certbot/certbot", "Auto-renew SSL certificates")
     }
   }
 
@@ -106,47 +101,46 @@ C4Deployment
 
 ---
 
-## Diagram 2 – Deployment Chi tiết VPS
+## Diagram 2 – Deployment Chi tiết VPS (Docker Compose)
 
 ```mermaid
 C4Deployment
-  title Deployment Diagram – VPS Internal Layout
+  title Deployment Diagram – VPS Internal Layout (Docker Compose)
 
   Deployment_Node(vpsDetail, "VPS / Cloud VM", "Ubuntu 22.04 LTS") {
 
-    Deployment_Node(nginxD, "Nginx (Port 80/443)", "Reverse Proxy + TLS Termination") {
-      Container(nginxD_svc, "Nginx Config", "sites-enabled", "lizswap.xyz→:3001, admin→:3002, /api→:3000, WSS upgrade")
-    }
+    Deployment_Node(dockerCompose, "Docker Compose", "docker-compose.yml") {
 
-    Deployment_Node(pm2D, "PM2 Ecosystem", "Node.js v20 LTS") {
-      Container(dappProc, "dapp-frontend", "next start :3001", "DApp Frontend SSR – Swap, Pool, Stake, Chart")
-      Container(adminProc, "admin-dashboard", "next start :3002", "Admin Dashboard SSR – Manager & Staff")
-      Container(apiProc, "backend-api", "Node.js Process :3000", "Backend API – REST & WebSocket")
-      Container(indexerProc, "bsc-indexer", "Node.js Process", "BSC Indexer daemon – không expose port")
-    }
+      Deployment_Node(proxyLayer, "Reverse Proxy Layer", "Exposed ports 80/443") {
+        Container(nginxD_svc, "lizswap-nginx", "nginx:alpine", "lizswap.xyz→:3001, admin→:3002, /api→:3000, WSS upgrade")
+        Container(certbotD, "lizswap-certbot", "certbot/certbot", "Auto-renew SSL mỗi 12h")
+      }
 
-    Deployment_Node(dockerD, "Docker Compose", "Isolated containers") {
-      ContainerDb(pgDocker, "postgres", "PostgreSQL 15 :5432", "Volume: /data/postgres")
-      ContainerDb(redisDocker, "redis", "Redis 7 :6379", "Volume: /data/redis, AOF persist")
-    }
+      Deployment_Node(appLayer, "Application Layer", "Internal network only") {
+        Container(dappProc, "lizswap-dapp", "Next.js standalone :3001", "DApp Frontend SSR – Swap, Pool, Stake, Chart")
+        Container(adminProc, "lizswap-admin", "Next.js standalone :3002", "Admin Dashboard SSR – Manager & Staff")
+        Container(apiProc, "lizswap-backend", "Node.js + Express :3000", "Backend API – REST & Socket.IO")
+        Container(indexerProc, "lizswap-indexer", "Node.js daemon", "BSC Indexer – không expose port")
+      }
 
-    Deployment_Node(envConfig, "Environment Config", ".env files") {
-      Container(envFile, ".env", "dotenv", "DB_URL, REDIS_URL, BSC_RPC_WS, JWT_SECRET, FACTORY_ADDR, NEXT_PUBLIC_*")
+      Deployment_Node(dataLayer, "Data Layer", "Persistent volumes") {
+        ContainerDb(pgDocker, "lizswap-postgres", "PostgreSQL 15 :5432", "Volume: lizswap-postgres-data")
+        ContainerDb(redisDocker, "lizswap-redis", "Redis 7 :6379", "Volume: lizswap-redis-data, AOF persist")
+      }
+
+      Deployment_Node(envConfig, "Environment Config", ".env file") {
+        Container(envFile, ".env", "Docker Compose env_file", "DATABASE_URL, REDIS_URL, BSC_RPC_*, FACTORY_ADDR, JWT_SECRET, NEXT_PUBLIC_*")
+      }
     }
   }
 
-  Rel(nginxD_svc, dappProc, "Proxy lizswap.xyz :443 → :3001", "HTTP")
-  Rel(nginxD_svc, adminProc, "Proxy admin.lizswap.xyz :443 → :3002", "HTTP")
-  Rel(nginxD_svc, apiProc, "Proxy /api :443 → :3000, WSS upgrade", "HTTP / WS")
-  Rel(dappProc, pgDocker, "–", "(không kết nối DB trực tiếp)")
+  Rel(nginxD_svc, dappProc, "Proxy lizswap.xyz → :3001", "HTTP")
+  Rel(nginxD_svc, adminProc, "Proxy admin.lizswap.xyz → :3002", "HTTP")
+  Rel(nginxD_svc, apiProc, "Proxy /api → :3000, /socket.io WSS upgrade", "HTTP / WS")
   Rel(apiProc, pgDocker, "pg client", "TCP :5432")
   Rel(apiProc, redisDocker, "ioredis client", "TCP :6379")
   Rel(indexerProc, pgDocker, "pg client (write OHLCV)", "TCP :5432")
-  Rel(indexerProc, redisDocker, "ioredis client (cache)", "TCP :6379")
-  Rel(apiProc, envFile, "Đọc biến môi trường", "dotenv")
-  Rel(indexerProc, envFile, "Đọc biến môi trường", "dotenv")
-  Rel(dappProc, envFile, "Đọc NEXT_PUBLIC_* tại build time", "dotenv")
-  Rel(adminProc, envFile, "Đọc NEXT_PUBLIC_* tại build time", "dotenv")
+  Rel(indexerProc, redisDocker, "ioredis client (cache + pub/sub)", "TCP :6379")
 
   UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
@@ -197,62 +191,63 @@ C4Deployment
 
 ## Bảng ánh xạ Container → Infrastructure
 
-| Container | Môi trường | Tech | Port / URL |
-|---|---|---|---|
-| DApp Frontend | VPS (PM2) | Next.js `next start` | `:3001` (internal) → `https://lizswap.xyz` |
-| Admin Dashboard | VPS (PM2) | Next.js `next start` | `:3002` (internal) → `https://admin.lizswap.xyz` |
-| Backend API | VPS (PM2) | Node.js | `:3000` (internal) → `/api/*` qua Nginx |
-| WebSocket Gateway | VPS (PM2) | Node.js WS | `:3000` (internal) → `/ws` qua Nginx upgrade |
-| BSC Indexer | VPS (PM2) | Node.js | Daemon, không expose port |
-| PostgreSQL | VPS (Docker) | PostgreSQL 15 | `:5432` (internal only) |
-| Redis | VPS (Docker) | Redis 7 | `:6379` (internal only) |
-| Nginx | VPS | Nginx + Let's Encrypt | `:80` → redirect `:443` TLS |
-| Smart Contracts | BSC Mainnet | Solidity | On-chain addresses |
-| BSC RPC | External | QuickNode / Ankr | `https://` + `wss://` |
+| Container | Docker Image / Build | Port / URL |
+|---|---|---|
+| `lizswap-dapp` | `apps/dapp/Dockerfile` (Next.js SSR) | `:3001` (internal) → `https://lizswap.xyz` |
+| `lizswap-admin` | `apps/admin/Dockerfile` (Next.js SSR) | `:3002` (internal) → `https://admin.lizswap.xyz` |
+| `lizswap-backend` | `packages/backend/Dockerfile` (Express) | `:3000` (internal) → `/api/*`, `/socket.io/*` qua Nginx |
+| `lizswap-indexer` | `packages/indexer/Dockerfile` (daemon) | — (không expose port) |
+| `lizswap-postgres` | `postgres:15-alpine` | `:5432` (internal only) |
+| `lizswap-redis` | `redis:7-alpine` | `:6379` (internal only) |
+| `lizswap-nginx` | `nginx:alpine` | `:80` → redirect `:443` TLS (exposed) |
+| `lizswap-certbot` | `certbot/certbot` | — (SSL renewal daemon) |
+| Smart Contracts | BSC Mainnet / Testnet | On-chain addresses |
+| BSC RPC | External (QuickNode / Ankr) | Cấu hình qua `.env` (`BSC_RPC_URL`, `BSC_RPC_WS`) |
 
 ---
 
 ## Ghi chú triển khai
 
 > [!IMPORTANT]
-> **Nginx là entry point duy nhất**: PostgreSQL và Redis chỉ lắng nghe trên `localhost` (127.0.0.1). Backend API và Indexer **không được expose port ra ngoài** trực tiếp.
+> **Nginx là entry point duy nhất**: Tất cả services (Backend, Frontend, Database, Cache) chỉ giao tiếp nội bộ qua Docker network `lizswap-network`. Chỉ Nginx container expose port `80`/`443` ra ngoài.
 
 > [!IMPORTANT]
-> **Smart Contract deploy thủ công (Foundry)**: Không có CI/CD. Developer dùng `forge script` để deploy. Sau khi deploy phải cập nhật địa chỉ contract vào `.env` của Backend và `src/constants/contracts.ts` của Frontend.
+> **Smart Contract deploy thủ công (Foundry)**: Không có CI/CD. Developer dùng `forge script` để deploy. Sau khi deploy phải cập nhật địa chỉ contract vào `.env` (cho Backend/Indexer) và `NEXT_PUBLIC_*` env vars (cho Frontend — truyền qua Docker build args).
 
 > [!NOTE]
-> **BSC RPC**: Nên dùng **QuickNode** hoặc **Ankr** thay vì public RPC để đảm bảo tốc độ và ổn định khi subscribe WebSocket event. Public RPC có thể bị rate-limit và không ổn định cho Indexer.
+> **BSC RPC**: Cấu hình qua biến môi trường `BSC_RPC_URL` (HTTPS) và `BSC_RPC_WS` (WebSocket) trong file `.env`. Nên dùng **QuickNode** hoặc **Ankr** thay vì public RPC để đảm bảo tốc độ và ổn định cho Indexer.
 
 > [!NOTE]
-> **PM2 Ecosystem File**: Dùng `ecosystem.config.js` để quản lý cả `backend-api` và `bsc-indexer`. Đặt `autorestart: true` và `watch: false` cho cả 2 process.
+> **Docker Compose**: Dùng `docker-compose.yml` ở root project để orchestrate toàn bộ services. Mỗi service có `restart: unless-stopped` để tự khởi động lại khi crash. Health checks được cấu hình cho PostgreSQL, Redis, Backend, và Frontend containers.
 
 > [!NOTE]
-> **SSL/TLS**: Dùng **Let's Encrypt + Certbot** để cấp certificate miễn phí cho cả 2 domain: `lizswap.xyz` (DApp) và `admin.lizswap.xyz` (Admin). Nginx xử lý TLS termination cho toàn bộ traffic.
+> **SSL/TLS**: Dùng **Certbot container** tích hợp trong Docker Compose. Chạy `infra/certbot/init-letsencrypt.sh` lần đầu để lấy certificate. Certbot container tự động renew mỗi 12 giờ. Nginx xử lý TLS termination.
+
+> [!NOTE]
+> **Database Init**: Schema PostgreSQL được tạo tự động khi container khởi tạo lần đầu qua SQL scripts trong `infra/postgres/init/`. Manager đầu tiên (wallet `0x070714e05b45f236FeAe2A87Cb1A740fAfA047B4`) và default config được seed sẵn.
 
 ---
 
-## Deploy Checklist (thủ công)
+## Deploy Checklist (Docker Compose)
 
-**Smart Contracts:**
+**Smart Contracts (thủ công – Foundry):**
 - [ ] `forge build` – compile contracts
 - [ ] `forge test` – chạy toàn bộ test suite
 - [ ] `forge script DeployAll.s.sol --rpc-url BSC_TESTNET --broadcast` – deploy testnet
 - [ ] `forge verify-contract` – verify trên BscScan
-- [ ] Lưu địa chỉ contract vào `addresses.json` / `.env`
+- [ ] Lưu địa chỉ contract vào `.env` (mục `FACTORY_ADDR`, `ROUTER_ADDR`, `STAKING_ADDR`)
 
-**Backend VPS:**
-- [ ] Clone repo, `npm install`
-- [ ] Tạo `.env` với `DB_URL`, `REDIS_URL`, `BSC_RPC_WS`, `FACTORY_ADDR`, `JWT_SECRET`
-- [ ] `docker compose up -d postgres redis`
-- [ ] `npm run migrate` – tạo schema database
-- [ ] `pm2 start ecosystem.config.js`
-- [ ] `pm2 save && pm2 startup`
-- [ ] Cấu hình Nginx + Let's Encrypt
+**Docker Compose (toàn bộ services):**
+- [ ] Clone repo
+- [ ] `cp .env.example .env` – tạo file config
+- [ ] Điền `.env`: `FACTORY_ADDR`, `ROUTER_ADDR`, `STAKING_ADDR`, `BSC_RPC_URL`, `BSC_RPC_WS`, `JWT_SECRET`, domains
+- [ ] `docker compose up -d --build` – build images và khởi chạy tất cả
+- [ ] Kiểm tra: `docker compose ps` – tất cả containers healthy
+- [ ] Kiểm tra logs: `docker compose logs -f backend indexer`
 
-**Frontend (VPS – PM2):**
-- [ ] Clone repo, `npm install` trong `apps/dapp` và `apps/admin`
-- [ ] Tạo `.env.local` với `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_WS_URL`, `NEXT_PUBLIC_FACTORY_ADDR`, `NEXT_PUBLIC_ROUTER_ADDR`
-- [ ] `npm run build` trong từng app
-- [ ] `pm2 start ecosystem.config.js` (bao gồm entry `dapp-frontend` và `admin-dashboard`)
-- [ ] Cấu hình Nginx virtual host: `lizswap.xyz` → `:3001`, `admin.lizswap.xyz` → `:3002`
-- [ ] `certbot --nginx -d lizswap.xyz -d admin.lizswap.xyz`
+**SSL Certificate (production):**
+- [ ] Uncomment SSL lines trong `infra/nginx/conf.d/default.conf`
+- [ ] `chmod +x infra/certbot/init-letsencrypt.sh`
+- [ ] `./infra/certbot/init-letsencrypt.sh` – lấy certificate từ Let's Encrypt
+- [ ] `docker compose restart nginx` – reload config với SSL
+- [ ] Kiểm tra HTTPS: `https://lizswap.xyz`, `https://admin.lizswap.xyz`
