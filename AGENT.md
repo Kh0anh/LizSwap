@@ -16,7 +16,7 @@
 | **Backend** | Node.js + TypeScript + Express |
 | **Database** | PostgreSQL 15 |
 | **Cache** | Redis 7 |
-| **Deploy** | VPS Ubuntu 22.04 + PM2 + Docker + Nginx + Let's Encrypt |
+| **Deploy** | VPS Ubuntu 22.04 + Docker Compose + Nginx + Certbot (Let's Encrypt) |
 
 ---
 
@@ -151,26 +151,35 @@ BSC WebSocket (Swap/Mint/Burn events)
 
 ---
 
-## 9. Hạ tầng triển khai (VPS)
+## 9. Hạ tầng triển khai (Docker Compose)
 
-**Tất cả services đều trên cùng một VPS** (Ubuntu 22.04):
+**Toàn bộ hệ thống chạy trên Docker Compose** (VPS Ubuntu 22.04):
 
-| Process | Tech | Port |
+| Container | Image / Build | Port |
 |---|---|---|
-| `dapp-frontend` | Next.js (PM2) | `:3001` |
-| `admin-dashboard` | Next.js (PM2) | `:3002` |
-| `backend-api` | Node.js (PM2) | `:3000` |
-| `bsc-indexer` | Node.js (PM2) | daemon |
-| `postgres` | Docker | `:5432` (internal) |
-| `redis` | Docker | `:6379` (internal) |
-| `nginx` | Nginx + TLS | `:80` → `:443` |
+| `lizswap-dapp` | `apps/dapp/Dockerfile` (Next.js) | `:3001` (internal) |
+| `lizswap-admin` | `apps/admin/Dockerfile` (Next.js) | `:3002` (internal) |
+| `lizswap-backend` | `packages/backend/Dockerfile` (Express) | `:3000` (internal) |
+| `lizswap-indexer` | `packages/indexer/Dockerfile` (daemon) | — |
+| `lizswap-postgres` | `postgres:15-alpine` | `:5432` (internal) |
+| `lizswap-redis` | `redis:7-alpine` | `:6379` (internal) |
+| `lizswap-nginx` | `nginx:alpine` | `:80` → `:443` (exposed) |
+| `lizswap-certbot` | `certbot/certbot` | — (SSL renewal) |
 
 **Nginx routing:**
-- `lizswap.xyz` → `:3001`
-- `admin.lizswap.xyz` → `:3002`
-- `*/api/*` + WebSocket → `:3000`
+- `lizswap.xyz` → `dapp:3001`
+- `admin.lizswap.xyz` → `admin:3002`
+- `*/api/*` + `/socket.io/*` → `backend:3000`
 
-**PostgreSQL và Redis chỉ bind `localhost`** — không expose ra ngoài.
+**Chỉ Nginx expose port ra ngoài** — PostgreSQL, Redis, Backend, Frontend chỉ giao tiếp nội bộ qua Docker network.
+
+**Deploy:**
+```bash
+cp .env.example .env   # Điền contract addresses, BSC RPC, JWT secret
+docker compose up -d   # Khởi chạy toàn bộ
+```
+
+**Smart Contracts**: Deploy thủ công bằng Foundry → cập nhật địa chỉ vào `.env`.
 
 ---
 
@@ -260,5 +269,5 @@ Tài liệu được chia thành các thư mục chuyên biệt trong `docs/`:
 3. **Đọc tài liệu kiến trúc liên quan** trước khi tạo hoặc sửa bất kỳ file code nào.
 4. **Tuân theo tech stack** đã định nghĩa — không tự ý thêm thư viện mà không hỏi.
 5. **Ngôn ngữ**: Trả lời bằng **tiếng Việt** trừ khi người dùng yêu cầu khác.
-6. **Không CI/CD**: Deploy thủ công — Foundry cho contracts, PM2 cho backend/frontend.
+6. **Không CI/CD**: Deploy thủ công — Foundry cho contracts, Docker Compose cho backend/frontend/database.
 7. **Nhất quán tài liệu**: Khi thay đổi kiến trúc, cập nhật cả `docs/architecture/` lẫn `AGENT.md`.

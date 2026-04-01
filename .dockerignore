@@ -1,0 +1,47 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Build
+.next
+dist
+out
+build
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Docs
+docs/
+*.md
+!README.md
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Foundry / Contracts (deploy thủ công)
+contracts/
+broadcast/
+
+# Agents
+.agents/
+
+# Misc
+*.log
+coverage/
